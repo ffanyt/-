@@ -24,13 +24,14 @@ public class Entity {
         //向消息队列发送消息
         try (Socket socket = new Socket(address, port);
              ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
+            System.out.println("发布到端口为：" + port + "的消息队列");
             topicList.add(topic);
             oos.writeObject(new Message(Config.publish, message, id, topic));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public void subscribe(int publishId, String topic) {
+    public void subscribe(String topic) {
         //向消息队列发送消息
         try (Socket socket = new Socket(address, port);
              ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {

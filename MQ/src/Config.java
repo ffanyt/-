@@ -1,5 +1,5 @@
 public class Config {
-    public static int mqPort = 1234;
+    public static int mqPort = 9999;
     public static String address = "127.0.0.1";
     public static String publish = "PUBLISH";
     public static String subscribe = "SUBSCRIBE";
