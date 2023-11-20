@@ -39,14 +39,18 @@ public class Main {
                     int subPort = Integer.parseInt(subscriberPort);
                     Entity subscriber = new Entity(subId, subPort);
                     new Thread(subscriber).start();
-                    subscriber.subscribe("1");
+                    System.out.println("输入消息主题：");
+                    String topic = sc.nextLine();
+                    subscriber.subscribe(topic);
                 }
                 while (true) {
 //                    System.out.println("1");
                     System.out.println("输入消息:");
                     Scanner sc1 = new Scanner(System.in);
                     String message = sc1.nextLine();
-                    publisher.publish(message, "1");
+                    System.out.println("输入消息主题：");
+                    String topic = sc1.nextLine();
+                    publisher.publish(message, topic);
 //                    System.out.println("2");
                 }
 //                System.out.println("输入消息:");

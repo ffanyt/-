@@ -11,7 +11,6 @@ import java.util.List;
 public class Entity implements Runnable{
     int port;
     String address;
-    String mgHead;
     int id = 0;
     int entityPort;
     List topicList = new ArrayList<ArrayList>();
@@ -37,6 +36,7 @@ public class Entity implements Runnable{
     public void subscribe(String topic) {
         // 绑定到本地地址和端口
         //向消息队列发送消息
+        topicList.add(topic);
         try (Socket socket = new Socket(address, port);
              //绑定端口
              ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
@@ -84,7 +84,12 @@ public class Entity implements Runnable{
                     Message req = (Message) new ObjectInputStream(socket.getInputStream()).readObject();
                     String Head = req.getMsgHeader();
                     if (Head.equals("WRONG")) {
-                        System.out.println("    没有订阅该主题");
+                        System.out.println("    数据为空或没有订阅该主题");
+                        continue;
+                    }
+                    String topic = req.getMsgTopicName();
+                    if (! topicList.contains(topic)) {
+                        System.out.println("    收到了未订阅主题的消息，丢弃");
                         continue;
                     }
                     String data = req.getMsgBody();

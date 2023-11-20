@@ -6,5 +6,5 @@ public class Config {
     public static String message = "MESSAGE";
     public static String get = "GET";
     public static String wrong = "WRONG";
-    public static int type = 3;
+    public static int type = 1;
 }
