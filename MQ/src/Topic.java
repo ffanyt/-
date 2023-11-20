@@ -21,12 +21,15 @@ public class Topic implements Runnable{
         while (true) {
             //在端口监听消息
             try (ServerSocket ss = new ServerSocket(port);) {// ServerSocket是监听端口的类
-                System.out.println("Topic监听端口为：" + port);
+//                System.out.println("Topic监听端口为：" + port);
                 while (true) {
                     Socket socket = ss.accept();
 //                    Process p = new Process(socket, this);
 //                    TopicProcess p = new TopicProcess(socket, pubHead, getHead, subHead, completeHead,
 //                            wrongHead, updateTime);
+                    //获得源端口
+                    int sourcePort = socket.getPort();
+//                    System.out.println("消息来源的端口为：" + sourcePort);
                     process p = new process(socket, this);
                     new Thread(p).start();
                 }
@@ -53,20 +56,40 @@ public class Topic implements Runnable{
         if (Config.type == 1) {
             //全广播模式
             for (Integer subscriberId : subscriberPort.keySet()) {
+//                int targetPort = message.getSourcePort();
+                int targetPort = subscriberPort.get(subscriberId);
                 //发送消息
-                try (Socket socket = new Socket(Config.address, subscriberPort.get(subscriberId));
+                try (Socket socket = new Socket(Config.address, targetPort);
                      ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
-                    oos.writeObject(new Message(Config.message, message.getMsgBody(), 0, ""));
+                    oos.writeObject(new Message(Config.message, message.getMsgBody(), 0, "", 0));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+        } else if (Config.type == 3) {
+            System.out.println("该消息为发布订阅模式，自动向订阅者发布信息");
+            //获得topicName
+            String topicName = message.getMsgTopicName();
+            //获得订阅者列表
+//            List<String> topics = subscribersMap.get(publishId);
+            for (Integer subscriberId : subscriberPort.keySet()) {
+                if (subscribersMap.get(subscriberId).contains(topicName)) {
+                    int targetPort = subscriberPort.get(subscriberId);
+                    //发送消息
+                    try (Socket socket = new Socket(Config.address, targetPort);
+                         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
+                        oos.writeObject(new Message(Config.message, message.getMsgBody(), 0, "", 0));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
         }
         return true;
     }
     public boolean subscribe(String topicName, int subscriberId, int sourcePort, String sourceAddress) {
         //添加订阅者
-        //TODO:这里传过来的sourcePort有误，需要修改
         if (! subscriberPort.containsKey(subscriberId)) {
             subscriberPort.put(subscriberId, sourcePort);
         }
@@ -90,32 +113,34 @@ public class Topic implements Runnable{
     public boolean get(Message message, int sourcePort, String sourceAddress) {
         //获取消息
         int subscriberId = message.getMsgSource();
-        String topicName = message.getMsgTopicName();
+//        String topicName = message.getMsgTopicName();
         if (! subscriberPort.containsKey(subscriberId)) {
             return false;
         }
         if (! subscribersMap.containsKey(subscriberId)) {
             return false;
         }
-        if (! subscribersMap.get(subscriberId).contains(topicName)) {
-            return false;
-        }
-        List<Message> messages = new ArrayList<>();
-        for (Message msg : messages) {
-            if (msg.getMsgTopicName().equals(topicName)) {
-                messages.add(msg);
-                //发送消息
+        List<String> topics = subscribersMap.get(subscriberId);
+//        List<Message> messages = new ArrayList<>();
+        int len = messages.size();
+        for (int i = len - 1; i >= 0; i--) {
+            String msgTopicName = messages.get(i).getMsgTopicName();
+            if (topics.contains(msgTopicName)) {
                 try (Socket socket = new Socket(sourceAddress, sourcePort);
                      ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
-                    oos.writeObject(new Message(Config.message, msg.getMsgBody(), 0, topicName));
+                    oos.writeObject(messages.get(i));
+                    //进入get函数意味着为点对点模式，那么在消息队列发送消息后，应该删除该消息
+                    messages.remove(i);
+                    return true;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
+        //如果没有消息，则发送一个错误消息
         try (Socket socket = new Socket(sourceAddress, sourcePort);
-             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());){
-            oos.writeObject(messages);
+             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
+            oos.writeObject(new Message(Config.wrong, "", 0, "", 0));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -16,9 +16,10 @@ public class process implements Runnable {
             Message req = (Message) ois.readObject();
             String Head = req.getMsgHeader();
             //获取消息来源的端口
-            int sourcePort = socket.getPort();
+            int sourcePort = req.getSourcePort();
             //获取消息来源的地址
             String sourceAddress = socket.getInetAddress().getHostAddress();
+//            System.out.println("消息来源的端口为：" + sourcePort + ",消息来源的地址为：" + sourceAddress);
             switch (Head) {
                 case "PUBLISH":
                     //发布消息
@@ -33,12 +34,12 @@ public class process implements Runnable {
                     topic.update();
                     //订阅消息
                     if (topic.subscribe(req.getMsgTopicName(), req.getMsgSource(), sourcePort, sourceAddress)) {
-                        System.out.println("订阅成功");
+                        System.out.println("    订阅成功");
                     } else {
-                        System.out.println("订阅失败");
+                        System.out.println("    订阅失败");
                     }
                     break;
-                case "get":
+                case "GET":
                     topic.update();
                     //获取消息
                     if (topic.get(req, sourcePort, sourceAddress)) {

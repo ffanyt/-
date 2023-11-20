@@ -5,5 +5,6 @@ public class Config {
     public static String subscribe = "SUBSCRIBE";
     public static String message = "MESSAGE";
     public static String get = "GET";
-    public static int type = 1;
+    public static String wrong = "WRONG";
+    public static int type = 3;
 }
