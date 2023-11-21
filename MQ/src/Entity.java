@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Entity implements Runnable{
-    int port;
-    String address;
-    int id = 0;
-    int entityPort;
-    List topicList = new ArrayList<ArrayList>();
+    private int port;
+    private String address;
+    private int id = 0;
+    private int entityPort;
+    private List topicList = new ArrayList<ArrayList>();
     public Entity(int id, int entityPort) {
         //从配置类中读取配置信息
         Config config = new Config();
@@ -100,4 +100,6 @@ public class Entity implements Runnable{
             }
         }
     }
+
+    
 }
