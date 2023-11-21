@@ -13,7 +13,7 @@ public class Entity implements Runnable{
     private String address;
     private int id = 0;
     private int entityPort;
-    private List topicList = new ArrayList<ArrayList>();
+    private List topicList = new ArrayList<String>();
     public Entity(int id, int entityPort) {
         //从配置类中读取配置信息
         Config config = new Config();
@@ -101,5 +101,5 @@ public class Entity implements Runnable{
         }
     }
 
-    
+
 }
