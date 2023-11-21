@@ -16,7 +16,7 @@ public class Main {
 //            int type = Integer.parseInt(typeIn);
         System.out.println("从配置文件读取模式信息...");
         int type = Config.type;
-        Topic t = new Topic("1");
+        Broker t = new Broker("1");
         new Thread(t).start();
         switch (type) {
             case 1:

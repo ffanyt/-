@@ -3,9 +3,9 @@ import java.net.Socket;
 
 public class process implements Runnable {
     Socket socket;
-    Topic topic;
+    Broker topic;
 
-    public process(Socket socket, Topic topic) {
+    public process(Socket socket, Broker topic) {
         //从配置类中读取配置信息
         this.socket = socket;
         this.topic = topic;
