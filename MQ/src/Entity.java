@@ -14,6 +14,7 @@ public class Entity implements Runnable{
     private int id = 0;
     private int entityPort;
     private List topicList = new ArrayList<String>();
+    private String testContent = "";
     public Entity(int id, int entityPort) {
         //从配置类中读取配置信息
         Config config = new Config();
@@ -81,7 +82,8 @@ public class Entity implements Runnable{
                     Socket socket = ss.accept();
                     //获得源端口
                     //收到信息
-                    Message req = (Message) new ObjectInputStream(socket.getInputStream()).readObject();
+                    Object msg = new ObjectInputStream(socket.getInputStream()).readObject();
+                    Message req = (Message) msg;
                     String Head = req.getMsgHeader();
                     if (Head.equals("WRONG")) {
                         System.out.println("    数据为空或没有订阅该主题");
@@ -93,7 +95,8 @@ public class Entity implements Runnable{
                         continue;
                     }
                     String data = req.getMsgBody();
-                    System.out.println("    编号为：" + id + "的订阅者收到数据为：" + data);
+                    System.out.println("    收到了编号为：" + id + "的消息");
+                    testContent = data;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -101,5 +104,7 @@ public class Entity implements Runnable{
         }
     }
 
-
+    public String getTestContent() {
+        return testContent;
+    }
 }

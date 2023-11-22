@@ -9,7 +9,7 @@ public class Broker implements Runnable{
     public String name;
     public int port;
     public Map<String, List<Message>> messageQueue = new HashMap<>();
-
+    public Map<String, List<Integer>> waitList = new HashMap<>();
     public Broker(String name) {
         this.name = name;
         this.port = new Config().mqPort;
@@ -94,7 +94,7 @@ public class Broker implements Runnable{
                     //发送消息
                     try (Socket socket = new Socket(Config.address, targetPort);
                          ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
-                        oos.writeObject(new Message(Config.message, message.getMsgBody(), 0, "", 0));
+                        oos.writeObject(new Message(Config.message, message.getMsgBody(), 0, topicName, 0));
                         //发送完消息后，删除该消息
                         messages.remove(message);
                         return true;
@@ -104,6 +104,19 @@ public class Broker implements Runnable{
                 }
             }
 
+        } else if (Config.type == 2) {
+            if (! waitList.containsKey(topicName)) {
+                return true;
+            }
+            List<Integer> ports = waitList.get(topicName);
+            for (Integer port : ports) {
+                try (Socket socket = new Socket(Config.address, port);
+                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());) {
+                    oos.writeObject(new Message(Config.message, message.getMsgBody(), 0, topicName, 0));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return true;
     }
@@ -158,6 +171,14 @@ public class Broker implements Runnable{
         } catch (Exception e) {
             e.printStackTrace();
         }
+        for (String topic : topics) {
+            if (! waitList.containsKey(message.getMsgTopicName())) {
+                waitList.put(topic, new ArrayList<Integer>());
+
+            }
+            waitList.get(topic).add(sourcePort);
+        }
+
         return true;
     }
 
